@@ -26,7 +26,3 @@ Built for accessibility use cases like ESL learners, neurodivergent users, and a
 - **Gradium** — Speech → Text
 - **Gemini** — Text transformation
 - **ElevenLabs** — Text → Speech
-
----
-
-## 🏗️ Architecture
