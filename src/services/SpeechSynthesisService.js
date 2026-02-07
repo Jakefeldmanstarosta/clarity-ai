@@ -1,0 +1,13 @@
+export class SpeechSynthesisService {
+  constructor(elevenLabsClient) {
+    this.elevenLabsClient = elevenLabsClient;
+  }
+
+  async synthesize(text) {
+    if (!text || text.trim().length === 0) {
+      throw new Error('Text to synthesize is empty');
+    }
+
+    return await this.elevenLabsClient.synthesize(text);
+  }
+}
