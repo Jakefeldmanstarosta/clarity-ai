@@ -5,6 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Clarity-AI - Speech Simplifier</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Newsreader:wght@400;500;600;700&family=Manrope:wght@400;500;600&display=swap');
+
+    :root {
+      color-scheme: light;
+      --bg: #f4efe6;
+      --panel: #fff8f0;
+      --panel-strong: #ffffff;
+      --border: #e0d2bf;
+      --ink: #3b2f2f;
+      --ink-muted: #6a5b4b;
+      --accent: #9c7a5c;
+      --accent-strong: #7a5a3d;
+      --accent-soft: #f1e3d2;
+      --success: #3f6b3a;
+      --error: #8a3b33;
+      --shadow: 0 24px 60px -45px rgba(60, 42, 28, 0.6);
+      --radius: 18px;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -12,76 +31,98 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      max-width: 800px;
+      font-family: 'Manrope', 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at top left, #f8f1e8 0%, #f4efe6 40%, #efe5d6 100%);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Newsreader', serif;
+      letter-spacing: -0.01em;
+    }
+
+    .page {
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 2rem;
-      background: #f5f5f5;
-      color: #333;
-    }
-
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-      color: #2563eb;
-    }
-
-    .subtitle {
-      color: #666;
-      margin-bottom: 2rem;
-    }
-
-    .card {
-      background: white;
-      border-radius: 8px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .controls {
+      padding: 2rem 2.5rem 3rem;
       display: flex;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 2rem;
       flex-wrap: wrap;
     }
 
-    button {
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 500;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    #record {
-      background: #2563eb;
-      color: white;
-    }
-
-    #record:hover:not(:disabled) {
-      background: #1d4ed8;
-    }
-
-    #stop {
-      background: #dc2626;
-      color: white;
-    }
-
-    #stop:hover:not(:disabled) {
-      background: #b91c1c;
-    }
-
-    .preferences {
+    .brand {
       display: flex;
       flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .brand h1 {
+      font-size: clamp(2rem, 2.6vw, 2.8rem);
+    }
+
+    .subtitle {
+      color: var(--ink-muted);
+      font-size: 1rem;
+    }
+
+    .top-controls {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) minmax(220px, 300px);
+      gap: 1.25rem;
+      flex: 1 1 560px;
+      align-items: stretch;
+    }
+
+    .card {
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .status {
+      padding: 0.85rem 1.1rem;
+      border-radius: 14px;
+      font-weight: 600;
+    }
+
+    .status-info {
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+    }
+
+    .status-success {
+      background: #e2f0d9;
+      color: var(--success);
+    }
+
+    .status-error {
+      background: #f2d7d3;
+      color: var(--error);
+    }
+
+    .empty-status {
+      display: none;
+    }
+
+    .settings {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .settings-row {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr);
       gap: 1rem;
     }
 
@@ -92,21 +133,23 @@
     }
 
     .pref-group label {
-      font-weight: 500;
-      color: #333;
+      font-weight: 600;
+      color: var(--ink-muted);
     }
 
     select {
-      padding: 0.5rem;
+      padding: 0.6rem 0.8rem;
       font-size: 1rem;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel-strong);
+      font-family: inherit;
+      color: var(--ink);
     }
 
     .checkbox-group {
       display: flex;
-      gap: 1.5rem;
+      gap: 0.8rem;
       flex-wrap: wrap;
     }
 
@@ -114,6 +157,12 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel-strong);
+      font-weight: 500;
+      color: var(--ink);
     }
 
     .checkbox-item input[type="checkbox"] {
@@ -122,158 +171,182 @@
       cursor: pointer;
     }
 
-    .checkbox-item label {
+    .controls {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      padding: 0.75rem 1.4rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 12px;
       cursor: pointer;
-      user-select: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      font-weight: 600;
+      font-family: inherit;
     }
 
-    h3 {
-      font-size: 1.25rem;
-      margin-bottom: 0.75rem;
-      color: #374151;
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
     }
 
-    pre {
-      background: #f9fafb;
-      padding: 1rem;
-      border-radius: 6px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      font-size: 0.95rem;
-      line-height: 1.6;
-      border: 1px solid #e5e7eb;
-      min-height: 60px;
+    #record {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 16px 30px -22px rgba(156, 122, 92, 0.95);
     }
 
-    audio {
-      width: 100%;
-      margin-top: 1rem;
+    #record:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 35px -22px rgba(156, 122, 92, 1);
     }
 
-    .status {
-      padding: 0.75rem 1rem;
-      border-radius: 6px;
-      margin-bottom: 1.5rem;
-      font-weight: 500;
+    #stop {
+      background: #b0594a;
+      color: white;
+      box-shadow: 0 16px 30px -22px rgba(176, 89, 74, 0.9);
     }
 
-    .status-info {
-      background: #dbeafe;
-      color: #1e40af;
+    #stop:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 35px -22px rgba(176, 89, 74, 1);
     }
 
-    .status-success {
-      background: #d1fae5;
-      color: #065f46;
+    .panels {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.5rem;
     }
 
-    .status-error {
-      background: #fee2e2;
-      color: #991b1b;
+    .panel {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      min-height: 420px;
     }
 
-    .empty-status {
-      display: none;
+    .panel h3 {
+      font-size: 1.35rem;
     }
 
     .stage-status {
-      padding: 0.5rem;
-      margin-bottom: 0.75rem;
-      border-radius: 4px;
-      font-weight: 500;
-      font-size: 0.9rem;
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      align-self: flex-start;
+      background: #f1e8db;
+      color: #8a725c;
     }
 
     .stage-status.waiting {
-      background: #f3f4f6;
-      color: #6b7280;
+      background: #f1e8db;
+      color: #8a725c;
     }
 
     .stage-status.processing {
-      background: #fef3c7;
-      color: #92400e;
+      background: #f9edc7;
+      color: #8a6a2d;
       animation: pulse 1.5s ease-in-out infinite;
     }
 
     .stage-status.complete {
-      background: #d1fae5;
-      color: #065f46;
+      background: #e2f0d9;
+      color: #3f6b3a;
     }
 
     .stage-status.error {
-      background: #fee2e2;
-      color: #991b1b;
+      background: #f2d7d3;
+      color: #8a3b33;
     }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.7; }
     }
+
+    pre {
+      flex: 1;
+      background: var(--panel-strong);
+      padding: 1.2rem;
+      border-radius: 14px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      border: 1px solid var(--border);
+      font-family: 'Newsreader', serif;
+      color: var(--ink);
+      min-height: 220px;
+    }
+
+    .audio-corner {
+      position: absolute;
+      top: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 20px -15px rgba(60, 42, 28, 0.4);
+    }
+
+    .audio-left {
+      left: 1.2rem;
+    }
+
+    .audio-right {
+      right: 1.2rem;
+    }
+
+    audio {
+      width: 160px;
+      height: 32px;
+    }
+
+    .panel-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      color: var(--ink-muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 980px) {
+      .top-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .settings-row {
+        grid-template-columns: 1fr;
+      }
+
+      .panels {
+        grid-template-columns: 1fr;
+      }
+
+      .audio-corner {
+        position: static;
+        align-self: flex-start;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>🎙️ Clarity-AI</h1>
-  <p class="subtitle">Speech-to-speech accessibility platform</p>
+  <div id="root"></div>
 
-  <div id="status" class="status empty-status"></div>
-
-  <div class="card">
-    <h3>🎛️ Settings</h3>
-    <div class="preferences">
-      <div class="pref-group">
-        <label for="complexity">Complexity Level:</label>
-        <select id="complexity">
-          <option value="very-simple">Very Simple (5th grade level)</option>
-          <option value="simple" selected>Simple</option>
-          <option value="moderate">Moderate</option>
-        </select>
-      </div>
-
-      <div class="checkbox-group">
-        <div class="checkbox-item">
-          <input type="checkbox" id="removeJargon" checked />
-          <label for="removeJargon">Remove Jargon</label>
-        </div>
-        <div class="checkbox-item">
-          <input type="checkbox" id="esl" checked />
-          <label for="esl">ESL-Friendly</label>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>🎤 Record Audio</h3>
-    <div class="controls">
-      <button id="record">Start Recording</button>
-      <button id="stop" disabled>Stop Recording</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>🎵 Stage 1: Original Recording</h3>
-    <div id="stage1Status" class="stage-status">⏳ Waiting...</div>
-    <audio id="originalAudio" controls></audio>
-  </div>
-
-  <div class="card">
-    <h3>📝 Stage 2: Transcribed Text</h3>
-    <div id="stage2Status" class="stage-status">⏳ Waiting...</div>
-    <pre id="original"></pre>
-  </div>
-
-  <div class="card">
-    <h3>✨ Stage 3: Simplified Text</h3>
-    <div id="stage3Status" class="stage-status">⏳ Waiting...</div>
-    <pre id="simplified"></pre>
-  </div>
-
-  <div class="card">
-    <h3>🔊 Stage 4: Synthesized Audio</h3>
-    <div id="stage4Status" class="stage-status">⏳ Waiting...</div>
-    <audio id="audio" controls></audio>
-  </div>
-
-  <script src="app.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel" src="app.js"></script>
 </body>
 </html>

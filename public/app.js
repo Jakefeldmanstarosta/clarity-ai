@@ -1,55 +1,68 @@
-class SpeechSimplifierApp {
-  constructor() {
-    this.mediaRecorder = null;
-    this.chunks = [];
+const { useEffect, useRef, useState } = React;
 
-    this.elements = {
-      recordBtn: document.getElementById('record'),
-      stopBtn: document.getElementById('stop'),
-      originalText: document.getElementById('original'),
-      simplifiedText: document.getElementById('simplified'),
-      audio: document.getElementById('audio'),
-      originalAudio: document.getElementById('originalAudio'),
-      status: document.getElementById('status'),
-      complexitySelect: document.getElementById('complexity'),
-      removeJargonCheckbox: document.getElementById('removeJargon'),
-      eslCheckbox: document.getElementById('esl'),
-      stage1Status: document.getElementById('stage1Status'),
-      stage2Status: document.getElementById('stage2Status'),
-      stage3Status: document.getElementById('stage3Status'),
-      stage4Status: document.getElementById('stage4Status')
+const defaultStages = {
+  1: { status: 'waiting', message: 'Waiting...' },
+  2: { status: 'waiting', message: 'Waiting...' },
+  3: { status: 'waiting', message: 'Waiting...' },
+  4: { status: 'waiting', message: 'Waiting...' }
+};
+
+function App() {
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
+  const streamRef = useRef(null);
+  const synthAudioRef = useRef(null);
+
+  const [status, setStatus] = useState({ message: '', type: 'info', visible: false });
+  const [stages, setStages] = useState(defaultStages);
+  const [originalText, setOriginalText] = useState('');
+  const [simplifiedText, setSimplifiedText] = useState('');
+  const [originalAudioUrl, setOriginalAudioUrl] = useState('');
+  const [synthAudioUrl, setSynthAudioUrl] = useState('');
+
+  const [complexity, setComplexity] = useState('simple');
+  const [removeJargon, setRemoveJargon] = useState(true);
+  const [esl, setEsl] = useState(true);
+
+  const [uiState, setUiState] = useState('ready');
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (originalAudioUrl) {
+        URL.revokeObjectURL(originalAudioUrl);
+      }
     };
+  }, [originalAudioUrl]);
 
-    this.initializeEventListeners();
-  }
+  useEffect(() => {
+    if (synthAudioUrl && synthAudioRef.current) {
+      synthAudioRef.current.play().catch(() => {});
+    }
+  }, [synthAudioUrl]);
 
-  initializeEventListeners() {
-    this.elements.recordBtn.onclick = () => this.startRecording();
-    this.elements.stopBtn.onclick = () => this.stopRecording();
-    this.resetStages();
-  }
+  const updateStageStatus = (stage, statusValue, message) => {
+    setStages(prev => ({
+      ...prev,
+      [stage]: { status: statusValue, message }
+    }));
+  };
 
-  resetStages() {
-    // Reset all stages to waiting
-    this.updateStageStatus(1, 'waiting', 'Waiting...');
-    this.updateStageStatus(2, 'waiting', 'Waiting...');
-    this.updateStageStatus(3, 'waiting', 'Waiting...');
-    this.updateStageStatus(4, 'waiting', 'Waiting...');
+  const resetStages = () => {
+    setStages(defaultStages);
+    setOriginalText('');
+    setSimplifiedText('');
+    setOriginalAudioUrl('');
+    setSynthAudioUrl('');
+  };
 
-    // Clear content
-    this.elements.originalText.textContent = '';
-    this.elements.simplifiedText.textContent = '';
-    this.elements.originalAudio.src = '';
-    this.elements.audio.src = '';
-  }
+  const setStatusMessage = (message, type = 'info') => {
+    setStatus({ message, type, visible: true });
+  };
 
-  updateStageStatus(stage, status, message) {
-    const element = this.elements[`stage${stage}Status`];
-    element.textContent = message;
-    element.className = `stage-status ${status}`;
-  }
-
-  async requestJson(url, options) {
+  const requestJson = async (url, options) => {
     const response = await fetch(url, options);
     let data = {};
     try {
@@ -63,168 +76,226 @@ class SpeechSimplifierApp {
     }
 
     return data;
-  }
+  };
 
-  async startRecording() {
+  const startRecording = async () => {
     try {
-      this.resetStages();
+      resetStages();
+      setUiState('recording');
+      setStatusMessage('Recording...', 'info');
+      updateStageStatus(1, 'processing', 'Recording audio...');
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      this.mediaRecorder = new MediaRecorder(stream);
-      this.chunks = [];
+      streamRef.current = stream;
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
 
-      this.mediaRecorder.ondataavailable = (e) => this.chunks.push(e.data);
-      this.mediaRecorder.onstop = () => this.processRecording();
+      mediaRecorder.ondataavailable = (event) => {
+        chunksRef.current.push(event.data);
+      };
 
-      this.mediaRecorder.start();
-      this.updateUIState('recording');
-      this.setStatus('Recording...', 'info');
-      this.updateStageStatus(1, 'processing', 'Recording audio...');
+      mediaRecorder.onstop = () => {
+        processRecording();
+      };
+
+      mediaRecorder.start();
     } catch (error) {
-      this.setStatus(`Error accessing microphone: ${error.message}`, 'error');
-      console.error('Error starting recording:', error);
+      setStatusMessage(`Error accessing microphone: ${error.message}`, 'error');
+      setUiState('ready');
     }
-  }
+  };
 
-  stopRecording() {
-    if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-      this.mediaRecorder.stop();
-      this.updateUIState('processing');
-      this.setStatus('Processing...', 'info');
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      setUiState('processing');
+      setStatusMessage('Processing...', 'info');
     }
-  }
+  };
 
-  async processRecording() {
+  const processRecording = async () => {
     let currentStage = 1;
 
     try {
-      const blob = new Blob(this.chunks, { type: 'audio/wav' });
+      const blob = new Blob(chunksRef.current, { type: 'audio/wav' });
+      const originalAudio = URL.createObjectURL(blob);
+      setOriginalAudioUrl(originalAudio);
+      updateStageStatus(1, 'complete', 'Audio recorded');
 
-      // Stage 1: Original Recording Complete
-      const originalAudioUrl = URL.createObjectURL(blob);
-      this.elements.originalAudio.src = originalAudioUrl;
-      this.updateStageStatus(1, 'complete', 'Audio recorded');
-
-      // Stage 2: Transcribe
-      this.updateStageStatus(2, 'processing', 'Transcribing audio...');
-      this.setStatus('Transcribing audio...', 'info');
+      updateStageStatus(2, 'processing', 'Transcribing audio...');
+      setStatusMessage('Transcribing audio...', 'info');
       currentStage = 2;
 
       const transcribeForm = new FormData();
       transcribeForm.append('audio', blob);
 
-      const transcribeData = await this.requestJson('/process/transcribe', {
+      const transcribeData = await requestJson('/process/transcribe', {
         method: 'POST',
         body: transcribeForm
       });
 
-      this.elements.originalText.textContent = transcribeData.originalText;
-      this.updateStageStatus(2, 'complete', 'Text transcribed');
+      setOriginalText(transcribeData.originalText);
+      updateStageStatus(2, 'complete', 'Text transcribed');
 
-      // Stage 3: Simplify
-      this.updateStageStatus(3, 'processing', 'Simplifying text...');
-      this.setStatus('Simplifying text...', 'info');
+      updateStageStatus(3, 'processing', 'Simplifying text...');
+      setStatusMessage('Simplifying text...', 'info');
       currentStage = 3;
 
-      const simplifyData = await this.requestJson('/process/simplify', {
+      const simplifyData = await requestJson('/process/simplify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: transcribeData.originalText,
-          prefs: this.getPreferences()
+          prefs: {
+            complexity,
+            removeJargon,
+            esl
+          }
         })
       });
 
-      this.updateStageStatus(3, 'complete', 'Text simplified');
-      this.elements.simplifiedText.textContent = simplifyData.simplifiedText;
+      setSimplifiedText(simplifyData.simplifiedText);
+      updateStageStatus(3, 'complete', 'Text simplified');
 
-      // Stage 4: Synthesize
-      this.updateStageStatus(4, 'processing', 'Synthesizing audio...');
-      this.setStatus('Synthesizing audio...', 'info');
+      updateStageStatus(4, 'processing', 'Synthesizing audio...');
+      setStatusMessage('Synthesizing audio...', 'info');
       currentStage = 4;
 
-      const synthData = await this.requestJson('/process/synthesize', {
+      const synthData = await requestJson('/process/synthesize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: simplifyData.simplifiedText })
       });
 
-      this.updateStageStatus(4, 'complete', 'Audio synthesized');
-      this.elements.audio.src = `data:audio/mp3;base64,${synthData.audioBase64}`;
+      updateStageStatus(4, 'complete', 'Audio synthesized');
+      setSynthAudioUrl(`data:audio/mp3;base64,${synthData.audioBase64}`);
 
-      await this.elements.audio.play();
-
-      this.setStatus('All stages complete! Audio playing.', 'success');
-      this.updateUIState('ready');
+      setStatusMessage('All stages complete! Audio playing.', 'success');
+      setUiState('ready');
     } catch (error) {
-      this.setStatus(`Error: ${error.message}`, 'error');
-      if (currentStage == 2) {
-        this.updateStageStatus(2, 'error', 'Transcription failed');
-        this.updateStageStatus(3, 'error', 'Skipped');
-        this.updateStageStatus(4, 'error', 'Skipped');
-      } else if (currentStage == 3) {
-        this.updateStageStatus(3, 'error', 'Simplification failed');
-        this.updateStageStatus(4, 'error', 'Skipped');
-      } else if (currentStage == 4) {
-        this.updateStageStatus(4, 'error', 'Synthesis failed');
+      setStatusMessage(`Error: ${error.message}`, 'error');
+      if (currentStage === 2) {
+        updateStageStatus(2, 'error', 'Transcription failed');
+        updateStageStatus(3, 'error', 'Skipped');
+        updateStageStatus(4, 'error', 'Skipped');
+      } else if (currentStage === 3) {
+        updateStageStatus(3, 'error', 'Simplification failed');
+        updateStageStatus(4, 'error', 'Skipped');
+      } else if (currentStage === 4) {
+        updateStageStatus(4, 'error', 'Synthesis failed');
       } else {
-        this.updateStageStatus(2, 'error', 'Processing failed');
-        this.updateStageStatus(3, 'error', 'Skipped');
-        this.updateStageStatus(4, 'error', 'Skipped');
+        updateStageStatus(2, 'error', 'Processing failed');
+        updateStageStatus(3, 'error', 'Skipped');
+        updateStageStatus(4, 'error', 'Skipped');
       }
-      console.error('Error processing recording:', error);
-      this.updateUIState('ready');
+      setUiState('ready');
     }
-  }
+  };
 
-  delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+  const controlsDisabled = uiState === 'recording' || uiState === 'processing';
 
-  getPreferences() {
-    return {
-      complexity: this.elements.complexitySelect.value,
-      removeJargon: this.elements.removeJargonCheckbox.checked,
-      esl: this.elements.eslCheckbox.checked
-    };
-  }
+  return (
+    <div className="page">
+      <header className="header">
+        <div className="brand">
+          <h1>Clarity-AI</h1>
+          <p className="subtitle">Speech-to-speech accessibility platform</p>
+        </div>
 
-  updateUIState(state) {
-    switch (state) {
-      case 'recording':
-        this.elements.recordBtn.disabled = true;
-        this.elements.stopBtn.disabled = false;
-        this.elements.complexitySelect.disabled = true;
-        this.elements.removeJargonCheckbox.disabled = true;
-        this.elements.eslCheckbox.disabled = true;
-        break;
-      case 'processing':
-        this.elements.recordBtn.disabled = true;
-        this.elements.stopBtn.disabled = true;
-        this.elements.complexitySelect.disabled = true;
-        this.elements.removeJargonCheckbox.disabled = true;
-        this.elements.eslCheckbox.disabled = true;
-        break;
-      case 'ready':
-      default:
-        this.elements.recordBtn.disabled = false;
-        this.elements.stopBtn.disabled = true;
-        this.elements.complexitySelect.disabled = false;
-        this.elements.removeJargonCheckbox.disabled = false;
-        this.elements.eslCheckbox.disabled = false;
-        break;
-    }
-  }
+        <div className="top-controls">
+          <div className="card">
+            <h3>Settings</h3>
+            <div className="settings">
+              <div className="settings-row">
+                <div className="pref-group">
+                  <label htmlFor="complexity">Complexity Level</label>
+                  <select
+                    id="complexity"
+                    value={complexity}
+                    onChange={(event) => setComplexity(event.target.value)}
+                    disabled={controlsDisabled}
+                  >
+                    <option value="very-simple">Very Simple (5th grade level)</option>
+                    <option value="simple">Simple</option>
+                    <option value="moderate">Moderate</option>
+                  </select>
+                </div>
+                <div className="pref-group">
+                  <label>Filters</label>
+                  <div className="checkbox-group">
+                    <label className="checkbox-item" htmlFor="removeJargon">
+                      <input
+                        type="checkbox"
+                        id="removeJargon"
+                        checked={removeJargon}
+                        onChange={(event) => setRemoveJargon(event.target.checked)}
+                        disabled={controlsDisabled}
+                      />
+                      Remove Jargon
+                    </label>
+                    <label className="checkbox-item" htmlFor="esl">
+                      <input
+                        type="checkbox"
+                        id="esl"
+                        checked={esl}
+                        onChange={(event) => setEsl(event.target.checked)}
+                        disabled={controlsDisabled}
+                      />
+                      ESL-Friendly
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-  setStatus(message, type = 'info') {
-    this.elements.status.textContent = message;
-    this.elements.status.className = `status status-${type}`;
-  }
+          <div className="card">
+            <h3>Recording</h3>
+            <div className="controls">
+              <button id="record" onClick={startRecording} disabled={uiState !== 'ready'}>
+                Start Recording
+              </button>
+              <button id="stop" onClick={stopRecording} disabled={uiState !== 'recording'}>
+                Stop Recording
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className={`status ${status.visible ? '' : 'empty-status'} status-${status.type}`}>
+        {status.message}
+      </div>
+
+      <section className="panels">
+        <div className="card panel">
+          <div className="audio-corner audio-right">
+            <audio controls src={originalAudioUrl || ''}></audio>
+          </div>
+          <h3>Raw Transcript</h3>
+          <div className={`stage-status ${stages[2].status}`}>{stages[2].message}</div>
+          <pre>{originalText}</pre>
+        </div>
+
+        <div className="card panel">
+          <div className="audio-corner audio-right">
+            <audio controls ref={synthAudioRef} src={synthAudioUrl || ''}></audio>
+          </div>
+          <h3>Filtered Transcript</h3>
+          <div className={`stage-status ${stages[3].status}`}>{stages[3].message}</div>
+          <div className={`stage-status ${stages[4].status}`}>{stages[4].message}</div>
+          <pre>{simplifiedText}</pre>
+        </div>
+      </section>
+
+      <section className="card">
+        <h3>Recording Status</h3>
+        <div className={`stage-status ${stages[1].status}`}>{stages[1].message}</div>
+      </section>
+    </div>
+  );
 }
 
-// Initialize app when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => new SpeechSimplifierApp());
-} else {
-  new SpeechSimplifierApp();
-}
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
