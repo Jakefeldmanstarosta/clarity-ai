@@ -7,6 +7,76 @@ export class SpeechController {
     this.preferencesValidator = preferencesValidator;
   }
 
+  async transcribe(req, res, next) {
+    try {
+      this.audioValidator.validate(req.file);
+
+      const originalText = await this.speechProcessingService.transcribe(
+        req.file.buffer,
+        req.file.mimetype
+      );
+
+      res.json({ originalText });
+    } catch (error) {
+      if (error.message && !error.statusCode) {
+        next(new ExternalAPIError(
+          `Transcription failed: ${error.message}`,
+          'unknown',
+          error
+        ));
+      } else {
+        next(error);
+      }
+    }
+  }
+
+  async simplify(req, res, next) {
+    try {
+      const text = req.body?.text;
+      if (!text) {
+        throw new ValidationError('Missing text to simplify', 'text');
+      }
+
+      const preferences = this.preferencesValidator.validate(req.body?.prefs);
+      const simplifiedText = await this.speechProcessingService.simplify(text, preferences);
+
+      res.json({ simplifiedText });
+    } catch (error) {
+      if (error.message && !error.statusCode) {
+        next(new ExternalAPIError(
+          `Simplification failed: ${error.message}`,
+          'unknown',
+          error
+        ));
+      } else {
+        next(error);
+      }
+    }
+  }
+
+  async synthesize(req, res, next) {
+    try {
+      const text = req.body?.text;
+      if (!text) {
+        throw new ValidationError('Missing text to synthesize', 'text');
+      }
+
+      const audioBase64 = await this.speechProcessingService.synthesize(text);
+
+      res.json({ audioBase64 });
+    } catch (error) {
+      if (error.message && !error.statusCode) {
+        next(new ExternalAPIError(
+          `Synthesis failed: ${error.message}`,
+          'unknown',
+          error
+        ));
+      } else {
+        next(error);
+      }
+    }
+  }
+
   async process(req, res, next) {
     try {
       // Validate audio file
