@@ -41,7 +41,7 @@ export class ElevenLabsClient {
 
       if (!text) {
         throw new TranscriptionAPIError(
-          'Invalid response from ElevenLabs STT API: missing text field',
+          'We couldn\'t extract text from the audio. Please try again.',
           null,
           { response }
         );

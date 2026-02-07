@@ -4,7 +4,8 @@ export class PreferencesValidator {
   static DEFAULT_PREFERENCES = {
     complexity: 'simple',
     removeJargon: true,
-    esl: true
+    esl: true,
+    customInstructions: ''
   };
 
   static VALID_COMPLEXITY_VALUES = ['very-simple', 'simple', 'moderate'];
@@ -38,7 +39,10 @@ export class PreferencesValidator {
         : PreferencesValidator.DEFAULT_PREFERENCES.removeJargon,
       esl: prefs.esl !== undefined
         ? Boolean(prefs.esl)
-        : PreferencesValidator.DEFAULT_PREFERENCES.esl
+        : PreferencesValidator.DEFAULT_PREFERENCES.esl,
+      customInstructions: prefs.customInstructions !== undefined
+        ? String(prefs.customInstructions).trim()
+        : PreferencesValidator.DEFAULT_PREFERENCES.customInstructions
     };
 
     // Validate complexity value

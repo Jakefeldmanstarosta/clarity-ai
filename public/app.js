@@ -23,6 +23,7 @@ function App() {
   const [complexity, setComplexity] = useState('simple');
   const [removeJargon, setRemoveJargon] = useState(true);
   const [esl, setEsl] = useState(true);
+  const [customInstructions, setCustomInstructions] = useState('');
 
   const [uiState, setUiState] = useState('ready');
 
@@ -150,7 +151,8 @@ function App() {
           prefs: {
             complexity,
             removeJargon,
-            esl
+            esl,
+            customInstructions
           }
         })
       });
@@ -247,18 +249,40 @@ function App() {
                   </div>
                 </div>
               </div>
+              <div className="pref-group">
+                <label htmlFor="customInstructions">Custom Instructions (optional)</label>
+                <input
+                  type="text"
+                  id="customInstructions"
+                  value={customInstructions}
+                  onChange={(event) => setCustomInstructions(event.target.value)}
+                  disabled={controlsDisabled}
+                  style={{
+                    padding: '0.6rem 0.8rem',
+                    fontSize: '0.95rem',
+                    border: '1px solid var(--border)',
+                    borderRadius: '10px',
+                    background: 'var(--panel-strong)',
+                    fontFamily: 'inherit',
+                    color: 'var(--ink)',
+                    width: '100%'
+                  }}
+                />
+              </div>
             </div>
           </div>
 
           <div className="card">
-            <h3>Recording</h3>
-            <div className="controls">
-              <button id="record" onClick={startRecording} disabled={uiState !== 'ready'}>
-                Start Recording
-              </button>
-              <button id="stop" onClick={stopRecording} disabled={uiState !== 'recording'}>
-                Stop Recording
-              </button>
+            <div className="recording-card">
+              <h3>Recording</h3>
+              <div className="controls">
+                <button id="record" onClick={startRecording} disabled={uiState !== 'ready'}>
+                  Start Recording
+                </button>
+                <button id="stop" onClick={stopRecording} disabled={uiState !== 'recording'}>
+                  Stop Recording
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -288,11 +312,11 @@ function App() {
           <pre>{simplifiedText}</pre>
         </div>
       </section>
-
+        
       <section className="card">
-        <h3>Recording Status</h3>
         <div className={`stage-status ${stages[1].status}`}>{stages[1].message}</div>
       </section>
+
     </div>
   );
 }

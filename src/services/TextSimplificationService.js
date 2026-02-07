@@ -16,7 +16,8 @@ export class TextSimplificationService {
     const {
       complexity = 'simple',
       removeJargon = true,
-      esl = true
+      esl = true,
+      customInstructions = ''
     } = preferences;
 
     const rules = ['Preserve meaning exactly', 'Output TEXT ONLY (no explanations or meta-commentary)'];
@@ -45,6 +46,11 @@ export class TextSimplificationService {
       rules.push('ESL-friendly language: avoid idioms, slang, and cultural references');
       rules.push('Use direct, literal language');
       rules.push('Prefer common words over rare synonyms');
+    }
+
+    // Add custom user instructions if provided
+    if (customInstructions && customInstructions.length > 0) {
+      rules.push(`CUSTOM USER INSTRUCTION: ${customInstructions}`);
     }
 
     return `You are an accessibility-focused language rewriter.
