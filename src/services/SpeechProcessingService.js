@@ -11,7 +11,6 @@ export class SpeechProcessingService {
 
     // Step 2: Temporarily skip Gemini; keep wiring for easy re-enable
     const simplifiedText = await this.textSimplificationService.simplify(originalText, preferences);
-    //const simplifiedText = originalText;
 
     // Step 3: Convert simplified text back to speech
     const audioBase64 = await this.speechSynthesisService.synthesize(simplifiedText);
