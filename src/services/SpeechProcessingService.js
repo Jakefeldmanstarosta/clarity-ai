@@ -9,8 +9,9 @@ export class SpeechProcessingService {
     // Step 1: Transcribe audio to text
     const originalText = await this.transcriptionService.transcribe(audioBuffer, mimeType);
 
-    // Step 2: Simplify the transcribed text using preferences
+    // Step 2: Temporarily skip Gemini; keep wiring for easy re-enable
     const simplifiedText = await this.textSimplificationService.simplify(originalText, preferences);
+    //const simplifiedText = originalText;
 
     // Step 3: Convert simplified text back to speech
     const audioBase64 = await this.speechSynthesisService.synthesize(simplifiedText);

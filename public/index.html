@@ -175,6 +175,40 @@
     .empty-status {
       display: none;
     }
+
+    .stage-status {
+      padding: 0.5rem;
+      margin-bottom: 0.75rem;
+      border-radius: 4px;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .stage-status.waiting {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    .stage-status.processing {
+      background: #fef3c7;
+      color: #92400e;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .stage-status.complete {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .stage-status.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
   </style>
 </head>
 <body>
@@ -217,22 +251,26 @@
   </div>
 
   <div class="card">
-    <h3>🎵 Original Recording</h3>
+    <h3>🎵 Stage 1: Original Recording</h3>
+    <div id="stage1Status" class="stage-status">⏳ Waiting...</div>
     <audio id="originalAudio" controls></audio>
   </div>
 
   <div class="card">
-    <h3>📝 Original Text</h3>
+    <h3>📝 Stage 2: Transcribed Text</h3>
+    <div id="stage2Status" class="stage-status">⏳ Waiting...</div>
     <pre id="original"></pre>
   </div>
 
   <div class="card">
-    <h3>✨ Simplified Text</h3>
+    <h3>✨ Stage 3: Simplified Text</h3>
+    <div id="stage3Status" class="stage-status">⏳ Waiting...</div>
     <pre id="simplified"></pre>
   </div>
 
   <div class="card">
-    <h3>🔊 Audio Output</h3>
+    <h3>🔊 Stage 4: Synthesized Audio</h3>
+    <div id="stage4Status" class="stage-status">⏳ Waiting...</div>
     <audio id="audio" controls></audio>
   </div>
 

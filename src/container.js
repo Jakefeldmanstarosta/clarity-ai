@@ -15,7 +15,7 @@ export function createContainer() {
   const httpClient = new BaseHttpClient(config);
 
   // Create API clients
-  const geminiClient = new GeminiClient(config, httpClient);
+  const geminiClient = new GeminiClient(config);
   const elevenLabsClient = new ElevenLabsClient(config, httpClient);
 
   // Create services (ElevenLabs handles both STT and TTS)

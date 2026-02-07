@@ -1,32 +1,46 @@
+import { GoogleGenAI } from '@google/genai';
+import { SimplificationAPIError, ConfigurationError } from '../errors/index.js';
+
 export class GeminiClient {
-  constructor(config, httpClient) {
+  constructor(config) {
     this.config = config;
-    this.httpClient = httpClient;
+
+    const apiKey = config?.api?.gemini?.apiKey;
+    if (!apiKey) throw new ConfigurationError('GEMINI_API_KEY is not configured');
+
+    this.ai = new GoogleGenAI({ apiKey });
   }
 
   async rewrite(prompt) {
-    const { endpoint, apiKey, model } = this.config.api.gemini;
+    const startTime = Date.now();
 
-    if (!apiKey) {
-      throw new Error('GEMINI_API_KEY is not configured');
-    }
+    try {
+      const { model } = this.config.api.gemini;
+      if (!model) throw new ConfigurationError('GEMINI_MODEL is not configured');
 
-    const url = `${endpoint}/${model}:generateContent`;
+      const response = await this.ai.models.generateContent({
+        model,
+        contents: [{ role: 'user', parts: [{ text: prompt }] }]
+      });
 
-    const response = await this.httpClient.post(
-      url,
-      {
-        contents: [{ parts: [{ text: prompt }] }]
-      },
-      {
-        params: { key: apiKey }
+      const text = response?.text; // adjust if your SDK uses a different accessor
+      if (!text) {
+        throw new SimplificationAPIError(
+          'Invalid response from Gemini API: missing text in response',
+          null,
+          { duration: Date.now() - startTime }
+        );
       }
-    );
 
-    if (!response.candidates?.[0]?.content?.parts?.[0]?.text) {
-      throw new Error('Invalid response from Gemini API: missing text in response');
+      return text;
+    } catch (error) {
+      if (error instanceof ConfigurationError || error instanceof SimplificationAPIError) throw error;
+
+      throw new SimplificationAPIError(
+        `Google Gemini API call failed: ${error?.message || String(error)}`,
+        error,
+        { duration: Date.now() - startTime, model: this.config?.api?.gemini?.model }
+      );
     }
-
-    return response.candidates[0].content.parts[0].text;
   }
 }

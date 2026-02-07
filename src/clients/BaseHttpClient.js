@@ -35,6 +35,8 @@ export class BaseHttpClient {
   }
 
   _handleError(error, url) {
+    console.error(`\n[BaseHttpClient] HTTP Error for ${url}:`);
+
     const errorContext = {
       url,
       status: error.response?.status,
@@ -45,12 +47,29 @@ export class BaseHttpClient {
 
     if (error.response) {
       // Server responded with error status
-      throw new Error(`HTTP ${error.response.status}: ${JSON.stringify(errorContext)}`);
+      console.error(`[BaseHttpClient] Server responded with status ${error.response.status}`);
+      console.error(`[BaseHttpClient] Response data:`, error.response.data);
+      console.error(`[BaseHttpClient] Response headers:`, error.response.headers);
+
+      const errorMessage = error.response.data?.message ||
+                          error.response.data?.error ||
+                          error.response.statusText ||
+                          'Unknown server error';
+
+      throw new Error(`HTTP ${error.response.status} from ${url}: ${errorMessage}`);
     } else if (error.request) {
       // Request made but no response received
-      throw new Error(`No response received from ${url}: ${error.message}`);
+      console.error(`[BaseHttpClient] No response received (timeout or network error)`);
+      console.error(`[BaseHttpClient] Request config:`, {
+        method: error.config?.method,
+        url: error.config?.url,
+        timeout: error.config?.timeout
+      });
+
+      throw new Error(`No response from ${url} - check network connection or API endpoint`);
     } else {
       // Error in request setup
+      console.error(`[BaseHttpClient] Request setup error:`, error.message);
       throw new Error(`Request setup error for ${url}: ${error.message}`);
     }
   }

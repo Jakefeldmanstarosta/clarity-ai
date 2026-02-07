@@ -11,8 +11,7 @@ export const config = {
   api: {
     gemini: {
       apiKey: process.env.GEMINI_API_KEY,
-      endpoint: 'https://generativelanguage.googleapis.com/v1beta/models',
-      model: process.env.GEMINI_MODEL || 'gemini-pro'
+      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash'
     },
     elevenlabs: {
       apiKey: process.env.ELEVENLABS_API_KEY,
