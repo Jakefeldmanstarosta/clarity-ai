@@ -217,10 +217,11 @@ button:disabled {
 }
 
 .segmented {
-  display: flex;
-  gap: 0.4rem;
+  display: inline-flex;
+  gap: .4rem;
   flex-wrap: wrap;
-  padding: 0.3rem;
+  width: fit-content; 
+  padding: .3rem;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--panel-strong);
