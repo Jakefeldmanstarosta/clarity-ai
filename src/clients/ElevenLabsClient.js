@@ -6,7 +6,7 @@ export class ElevenLabsClient {
     this.httpClient = httpClient;
   }
 
-  async synthesize(text) {
+  async synthesize(text, options = {}) {
     try {
       const { ttsEndpoint, apiKey, voiceId, voiceSettings } = this.config.api.elevenlabs;
 
@@ -14,12 +14,17 @@ export class ElevenLabsClient {
         throw new ConfigurationError('ELEVENLABS_API_KEY is not configured');
       }
 
+      const speed = Number.isFinite(options?.speed) ? options.speed : undefined;
+      const mergedVoiceSettings = speed !== undefined
+        ? { ...voiceSettings, speed }
+        : { ...voiceSettings };
+
       const url = `${ttsEndpoint}/${voiceId}`;
       const response = await this.httpClient.axiosInstance.post(
         url,
         {
           text,
-          voice_settings: voiceSettings
+          voice_settings: mergedVoiceSettings
         },
         {
           headers: {

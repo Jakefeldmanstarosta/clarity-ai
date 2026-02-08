@@ -61,7 +61,8 @@ export class SpeechController {
         throw new ValidationError('Missing text to synthesize', 'text');
       }
 
-      const audioBase64 = await this.speechProcessingService.synthesize(text);
+      const speed = this.parseSpeed(req.body?.speed);
+      const audioBase64 = await this.speechProcessingService.synthesize(text, { speed });
 
       res.json({ audioBase64 });
     } catch (error) {
@@ -75,6 +76,23 @@ export class SpeechController {
         next(error);
       }
     }
+  }
+
+  parseSpeed(speedInput) {
+    if (speedInput === undefined || speedInput === null || speedInput === '') {
+      return undefined;
+    }
+
+    const value = Number(speedInput);
+    if (!Number.isFinite(value)) {
+      throw new ValidationError('Speech speed must be a number', 'speed');
+    }
+
+    if (value < 0.7 || value > 1.2) {
+      throw new ValidationError('Speech speed must be between 0.7 and 1.2', 'speed');
+    }
+
+    return value;
   }
 
   async process(req, res, next) {

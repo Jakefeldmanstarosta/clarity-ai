@@ -308,11 +308,10 @@ function App() {
           </div>
           <h3>Filtered Transcript</h3>
           <div className={`stage-status ${stages[3].status}`}>{stages[3].message}</div>
-          <div className={`stage-status ${stages[4].status}`}>{stages[4].message}</div>
           <pre>{simplifiedText}</pre>
         </div>
       </section>
-        
+      
       <section className="card">
         <div className={`stage-status ${stages[1].status}`}>{stages[1].message}</div>
       </section>
