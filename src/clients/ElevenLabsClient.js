@@ -68,15 +68,31 @@ export class ElevenLabsClient {
     }
   }
 
-  async synthesize(text) {
+  /**
+   * Synthesizes text to speech.
+   * @param {string} text - The text to speak.
+   * @param {string|null} voiceIdOverride - Optional voice ID to use instead of the config default.
+   */
+  async synthesize(text, voiceIdOverride = null) {
     try {
-      const { ttsEndpoint, apiKey, voiceId, voiceSettings } = this.config.api.elevenlabs;
+      // 1. Rename the config's voiceId to 'defaultVoiceId' so it doesn't clash
+      const { ttsEndpoint, apiKey, voiceId: defaultVoiceId, voiceSettings } = this.config.api.elevenlabs;
 
       if (!apiKey) {
         throw new ConfigurationError('ELEVENLABS_API_KEY is not configured');
       }
 
-      const url = `${ttsEndpoint}/${voiceId}`;
+      // 2. logic: use the override if passed, otherwise use default
+      // CRITICAL: Ensure we use 'targetVoiceId', not 'voiceId'
+      const targetVoiceId = voiceIdOverride || defaultVoiceId;
+
+      if (!targetVoiceId) {
+         throw new ConfigurationError('No Voice ID configured or provided');
+      }
+
+      // 3. CRITICAL FIX: Use 'targetVoiceId' in the URL string
+      const url = `${ttsEndpoint}/${targetVoiceId}`;
+      
       const response = await this.httpClient.axiosInstance.post(
         url,
         {
@@ -104,6 +120,7 @@ export class ElevenLabsClient {
         error,
         {
           endpoint: this.config.api.elevenlabs.ttsEndpoint,
+          // usage of 'this.config...' is safe here
           voiceId: this.config.api.elevenlabs.voiceId,
           textLength: text.length
         }

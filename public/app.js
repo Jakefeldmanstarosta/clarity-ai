@@ -7,6 +7,14 @@ const defaultStages = {
   4: { status: 'waiting', message: 'Waiting...' }
 };
 
+// Popular ElevenLabs Voice IDs
+const VOICE_OPTIONS = [
+  { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', gender: 'Female', style: 'Calm' },
+  { id: '29vD33N1CtxCmqQRPOHJ', name: 'Drew', gender: 'Male', style: 'News' },
+  { id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi', gender: 'Female', style: 'Strong' },
+  { id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh', gender: 'Male', style: 'Deep' }
+];
+
 function App() {
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -20,10 +28,12 @@ function App() {
   const [originalAudioUrl, setOriginalAudioUrl] = useState('');
   const [synthAudioUrl, setSynthAudioUrl] = useState('');
 
+  // Settings State
   const [complexity, setComplexity] = useState('simple');
   const [removeJargon, setRemoveJargon] = useState(true);
   const [esl, setEsl] = useState(true);
   const [customInstructions, setCustomInstructions] = useState('');
+  const [voiceId, setVoiceId] = useState(VOICE_OPTIONS[0].id); // Default to Rachel
 
   const [uiState, setUiState] = useState('ready');
 
@@ -164,10 +174,14 @@ function App() {
       setStatusMessage('Synthesizing audio...', 'info');
       currentStage = 4;
 
+      // UPDATED: Sending the selected voiceId to the backend
       const synthData = await requestJson('/process/synthesize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: simplifyData.simplifiedText })
+        body: JSON.stringify({ 
+          text: simplifyData.simplifiedText,
+          voiceId: voiceId 
+        })
       });
 
       updateStageStatus(4, 'complete', 'Audio synthesized');
@@ -249,6 +263,25 @@ function App() {
                   </div>
                 </div>
               </div>
+              
+              {/* UPDATED: Voice Selection UI */}
+              <div className="pref-group">
+                <label>Voice Persona</label>
+                <div className="voice-grid">
+                  {VOICE_OPTIONS.map((voice) => (
+                    <button
+                      key={voice.id}
+                      className={`voice-btn ${voiceId === voice.id ? 'active' : ''}`}
+                      onClick={() => setVoiceId(voice.id)}
+                      disabled={controlsDisabled}
+                    >
+                      <div className="voice-name">{voice.name}</div>
+                      <div className="voice-meta">{voice.gender} • {voice.style}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="pref-group">
                 <label htmlFor="customInstructions">Custom Instructions (optional)</label>
                 <input
@@ -257,6 +290,7 @@ function App() {
                   value={customInstructions}
                   onChange={(event) => setCustomInstructions(event.target.value)}
                   disabled={controlsDisabled}
+                  placeholder="e.g. 'Use medical analogies' or 'Speak slowly'"
                   style={{
                     padding: '0.6rem 0.8rem',
                     fontSize: '0.95rem',

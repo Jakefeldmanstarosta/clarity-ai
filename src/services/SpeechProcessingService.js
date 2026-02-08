@@ -13,8 +13,8 @@ export class SpeechProcessingService {
     return await this.textSimplificationService.simplify(text, preferences);
   }
 
-  async synthesize(text) {
-    return await this.speechSynthesisService.synthesize(text);
+  async synthesize(text, voiceId) {
+    return await this.speechSynthesisService.synthesize(text, voiceId);
   }
 
   async process(audioBuffer, preferences = {}, mimeType) {

@@ -56,12 +56,15 @@ export class SpeechController {
 
   async synthesize(req, res, next) {
     try {
-      const text = req.body?.text;
+      // UPDATED: Extract voiceId alongside text
+      const { text, voiceId } = req.body;
+      
       if (!text) {
         throw new ValidationError('Missing text to synthesize', 'text');
       }
 
-      const audioBase64 = await this.speechProcessingService.synthesize(text);
+      // UPDATED: Pass voiceId to the service
+      const audioBase64 = await this.speechProcessingService.synthesize(text, voiceId);
 
       res.json({ audioBase64 });
     } catch (error) {
