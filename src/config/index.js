@@ -22,15 +22,19 @@ export const config = {
       model: process.env.GEMINI_MODEL
     },
 
-    elevenlabs: {
-      apiKey: process.env.ELEVENLABS_API_KEY,
-      ttsEndpoint: 'https://api.elevenlabs.io/v1/text-to-speech',
-      voiceId: process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL',
-      voiceSettings: {
-        stability: 0.5,
-        similarity_boost: 0.75
-      }
+  elevenlabs: {
+    apiKey: process.env.ELEVENLABS_API_KEY,
+    ttsEndpoint: 'https://api.elevenlabs.io/v1/text-to-speech',
+    voiceId: process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL',
+    
+    // NEW: You MUST add this for 'speed' to work
+    modelId: 'eleven_turbo_v2_5', 
+    
+    voiceSettings: {
+      stability: 0.5,
+      similarity_boost: 0.75
     }
+}
   },
   upload: {
     maxFileSize: 10 * 1024 * 1024, // 10MB

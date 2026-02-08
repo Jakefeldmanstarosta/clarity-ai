@@ -1,4 +1,5 @@
-import { SynthesisAPIError, ConfigurationError } from '../errors/index.js';
+import FormData from 'form-data';
+import { TranscriptionAPIError, SynthesisAPIError, ConfigurationError } from '../errors/index.js';
 
 export class ElevenLabsClient {
   constructor(config, httpClient) {
@@ -71,38 +72,51 @@ export class ElevenLabsClient {
    * Synthesizes text to speech.
    * @param {string} text - The text to speak.
    * @param {string|null} voiceIdOverride - Optional voice ID to use instead of the config default.
+   * @param {object} options - Optional settings (e.g. speed).
    */
   async synthesize(text, voiceIdOverride = null, options = {}) {
     try {
-      // 1. Rename the config's voiceId to 'defaultVoiceId' so it doesn't clash
-      const { ttsEndpoint, apiKey, voiceId: defaultVoiceId, voiceSettings } = this.config.api.elevenlabs;
+      // 1. Rename the config's voiceId to 'defaultVoiceId'
+      // EXTRACT modelId HERE
+      const { 
+        ttsEndpoint, 
+        apiKey, 
+        voiceId: defaultVoiceId, 
+        voiceSettings,
+        modelId 
+      } = this.config.api.elevenlabs;
 
       if (!apiKey) {
         throw new ConfigurationError('ELEVENLABS_API_KEY is not configured');
       }
 
-      // 2. logic: use the override if passed, otherwise use default
-      // CRITICAL: Ensure we use 'targetVoiceId', not 'voiceId'
+      // 2. Logic: use the override if passed, otherwise use default
       const targetVoiceId = voiceIdOverride || defaultVoiceId;
 
       if (!targetVoiceId) {
-         throw new ConfigurationError('No Voice ID configured or provided');
+          throw new ConfigurationError('No Voice ID configured or provided');
       }
 
-      // 3. CRITICAL FIX: Use 'targetVoiceId' in the URL string
+      // 3. Merge Speed settings if provided
       const speed = Number.isFinite(options?.speed) ? options.speed : undefined;
       const mergedVoiceSettings = speed !== undefined
         ? { ...voiceSettings, speed }
         : { ...voiceSettings };
 
       const url = `${ttsEndpoint}/${targetVoiceId}`;
-      
+
+      // 4. Construct Payload with model_id
+      // CRITICAL FIX: We must send 'model_id' in the body.
+      // If config.modelId is missing, we fallback to 'eleven_turbo_v2_5' to prevent crashes.
+      const payload = {
+        text,
+        model_id: modelId || 'eleven_turbo_v2_5', 
+        voice_settings: mergedVoiceSettings
+      };
+
       const response = await this.httpClient.axiosInstance.post(
         url,
-        {
-          text,
-          voice_settings: mergedVoiceSettings
-        },
+        payload,
         {
           headers: {
             'xi-api-key': apiKey,
@@ -118,14 +132,16 @@ export class ElevenLabsClient {
       if (error instanceof ConfigurationError) {
         throw error;
       }
+      
+      // Log the specific API error message if available
+      const apiMessage = error.response?.data ? JSON.stringify(error.response.data) : error.message;
 
       throw new SynthesisAPIError(
-        `ElevenLabs TTS API call failed: ${error.message}`,
+        `ElevenLabs TTS API call failed: ${apiMessage}`,
         error,
         {
           endpoint: this.config.api.elevenlabs.ttsEndpoint,
-          // usage of 'this.config...' is safe here
-          voiceId: this.config.api.elevenlabs.voiceId,
+          voiceId: targetVoiceId,
           textLength: text.length
         }
       );
