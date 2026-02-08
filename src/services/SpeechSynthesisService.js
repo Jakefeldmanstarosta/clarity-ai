@@ -3,11 +3,11 @@ export class SpeechSynthesisService {
     this.elevenLabsClient = elevenLabsClient;
   }
 
-  async synthesize(text, voiceId) {
+  async synthesize(text, voiceId, options = {}) {
     if (!text || text.trim().length === 0) {
       throw new Error('Text to synthesize is empty');
     }
 
-    return await this.elevenLabsClient.synthesize(text, voiceId);
+    return await this.elevenLabsClient.synthesize(text, voiceId, options);
   }
 }

@@ -1,6 +1,6 @@
 export class TranscriptionService {
-  constructor(elevenLabsClient) {
-    this.elevenLabsClient = elevenLabsClient;
+  constructor(gradiumClient) {
+    this.gradiumClient = gradiumClient;
   }
 
   async transcribe(audioBuffer, mimeType) {
@@ -8,6 +8,6 @@ export class TranscriptionService {
       throw new Error('Audio buffer is empty');
     }
 
-    return await this.elevenLabsClient.transcribe(audioBuffer, mimeType);
+    return await this.gradiumClient.transcribe(audioBuffer, mimeType);
   }
 }

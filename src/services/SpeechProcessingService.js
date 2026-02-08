@@ -13,11 +13,11 @@ export class SpeechProcessingService {
     return await this.textSimplificationService.simplify(text, preferences);
   }
 
-  async synthesize(text, voiceId) {
-    return await this.speechSynthesisService.synthesize(text, voiceId);
+  async synthesize(text, voiceId, options = {}) {
+    return await this.speechSynthesisService.synthesize(text, voiceId, options);
   }
 
-  async process(audioBuffer, preferences = {}, mimeType) {
+  async process(audioBuffer, preferences = {}, mimeType, synthesisOptions = {}) {
     // Step 1: Transcribe audio to text
     const originalText = await this.transcribe(audioBuffer, mimeType);
 
@@ -25,7 +25,7 @@ export class SpeechProcessingService {
     const simplifiedText = await this.simplify(originalText, preferences);
 
     // Step 3: Convert simplified text back to speech
-    const audioBase64 = await this.synthesize(simplifiedText);
+    const audioBase64 = await this.synthesize(simplifiedText, synthesisOptions);
 
     return {
       originalText,

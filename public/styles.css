@@ -33,6 +33,8 @@ body {
 h1, h2{
   font-family: 'Newsreader', serif;
   letter-spacing: -0.01em;
+  margin-top: 5rem;
+
 }
 
 h3{
@@ -169,6 +171,7 @@ select {
   width: 18px;
   height: 18px;
   cursor: pointer;
+  accent-color: var(--accent-strong);
 }
 
 .controls {
@@ -176,6 +179,12 @@ select {
   gap: 0.8rem;
   flex-wrap: wrap;
   align-items: center;
+}
+
+.hint-text {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--ink-muted);
 }
 
 .controls-vertical {
@@ -205,6 +214,39 @@ button:disabled {
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
+}
+
+.segmented {
+  display: inline-flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+  width: fit-content; 
+  padding: .3rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+}
+
+.seg-button {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.9rem;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--ink-muted);
+  box-shadow: none;
+  font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.seg-button.active {
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 14px 25px -20px rgba(156, 122, 92, 0.9);
+}
+
+.seg-button:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 #record {

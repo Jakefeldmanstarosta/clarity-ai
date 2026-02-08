@@ -1,4 +1,4 @@
-# 🎙️ Speech-to-Speech Accessibility Platform
+# ClarityAI: Speech-to-Speech Accessibility Platform
 
 A real-time speech encoder–decoder that helps people better understand spoken language.
 
@@ -12,7 +12,7 @@ Built for accessibility use cases like ESL learners, neurodivergent users, and a
 
 ---
 
-## 🧠 Tech Stack
+## Tech Stack
 
 **Frontend**
 - Next.js (React)
@@ -26,3 +26,13 @@ Built for accessibility use cases like ESL learners, neurodivergent users, and a
 - **Gradium** — Speech → Text
 - **Gemini** — Text transformation
 - **ElevenLabs** — Text → Speech
+
+
+## .env
+
+```
+GEMINI_API_KEY=<YOUR_API_KEY>
+ELEVENLABS_API_KEY=<YOUR_API_KEY>
+GRADIUM_API_KEY=<YOUR_API_KEY>
+GEMINI_MODEL=gemini-2.5-flash-lite
+```

@@ -1,5 +1,4 @@
-import FormData from 'form-data';
-import { TranscriptionAPIError, SynthesisAPIError, ConfigurationError } from '../errors/index.js';
+import { SynthesisAPIError, ConfigurationError } from '../errors/index.js';
 
 export class ElevenLabsClient {
   constructor(config, httpClient) {
@@ -73,7 +72,7 @@ export class ElevenLabsClient {
    * @param {string} text - The text to speak.
    * @param {string|null} voiceIdOverride - Optional voice ID to use instead of the config default.
    */
-  async synthesize(text, voiceIdOverride = null) {
+  async synthesize(text, voiceIdOverride = null, options = {}) {
     try {
       // 1. Rename the config's voiceId to 'defaultVoiceId' so it doesn't clash
       const { ttsEndpoint, apiKey, voiceId: defaultVoiceId, voiceSettings } = this.config.api.elevenlabs;
@@ -91,13 +90,18 @@ export class ElevenLabsClient {
       }
 
       // 3. CRITICAL FIX: Use 'targetVoiceId' in the URL string
+      const speed = Number.isFinite(options?.speed) ? options.speed : undefined;
+      const mergedVoiceSettings = speed !== undefined
+        ? { ...voiceSettings, speed }
+        : { ...voiceSettings };
+
       const url = `${ttsEndpoint}/${targetVoiceId}`;
       
       const response = await this.httpClient.axiosInstance.post(
         url,
         {
           text,
-          voice_settings: voiceSettings
+          voice_settings: mergedVoiceSettings
         },
         {
           headers: {
