@@ -1,5 +1,6 @@
 import { config } from './config/index.js';
 import { BaseHttpClient } from './clients/BaseHttpClient.js';
+import { GradiumClient } from './clients/GradiumClient.js';
 import { GeminiClient } from './clients/GeminiClient.js';
 import { ElevenLabsClient } from './clients/ElevenLabsClient.js';
 import { TranscriptionService } from './services/TranscriptionService.js';
@@ -15,11 +16,12 @@ export function createContainer() {
   const httpClient = new BaseHttpClient(config);
 
   // Create API clients
+  const gradiumClient = new GradiumClient(config);
   const geminiClient = new GeminiClient(config);
   const elevenLabsClient = new ElevenLabsClient(config, httpClient);
 
-  // Create services (ElevenLabs handles both STT and TTS)
-  const transcriptionService = new TranscriptionService(elevenLabsClient);
+  // Create services (Gradium for STT, ElevenLabs for TTS)
+  const transcriptionService = new TranscriptionService(gradiumClient);
   const textSimplificationService = new TextSimplificationService(geminiClient);
   const speechSynthesisService = new SpeechSynthesisService(elevenLabsClient);
   const speechProcessingService = new SpeechProcessingService(

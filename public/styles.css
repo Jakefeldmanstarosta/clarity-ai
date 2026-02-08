@@ -33,6 +33,8 @@ body {
 h1, h2{
   font-family: 'Newsreader', serif;
   letter-spacing: -0.01em;
+  margin-top: 5rem;
+
 }
 
 h3{
@@ -169,6 +171,7 @@ select {
   width: 18px;
   height: 18px;
   cursor: pointer;
+  accent-color: var(--accent-strong);
 }
 
 .controls {
