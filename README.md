@@ -30,6 +30,6 @@ Built for accessibility use cases like ESL learners, neurodivergent users, and a
 
 ## .env
 
-GEMINI_API_KEY=
-ELEVENLABS_API_KEY=
-GEMINI_MODEL=gemini-2.5-flash-lite
+- GEMINI_API_KEY=
+- ELEVENLABS_API_KEY=
+- GEMINI_MODEL=gemini-2.5-flash-lite
