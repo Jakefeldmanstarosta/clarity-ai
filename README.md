@@ -1,4 +1,4 @@
-# 🎙️ Speech-to-Speech Accessibility Platform
+# ClarityAI: Speech-to-Speech Accessibility Platform
 
 A real-time speech encoder–decoder that helps people better understand spoken language.
 
@@ -12,7 +12,7 @@ Built for accessibility use cases like ESL learners, neurodivergent users, and a
 
 ---
 
-## 🧠 Tech Stack
+## Tech Stack
 
 **Frontend**
 - Next.js (React)
