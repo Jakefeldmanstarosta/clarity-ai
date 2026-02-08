@@ -35,10 +35,27 @@ function App() {
   const [removeJargon, setRemoveJargon] = useState(true);
   const [esl, setEsl] = useState(true);
   const [customInstructions, setCustomInstructions] = useState('');
+  const [speechSpeed, setSpeechSpeed] = useState(1.0);
 
   const [uiState, setUiState] = useState('ready');
   const transcriptRef = useRef('');
   const updateRunningTranscript = updateRunningTranscriptFactory(setOriginalText, transcriptRef);
+
+  const speedOptions = [
+    { label: 'Slow', value: 0.85 },
+    { label: 'Normal', value: 1.0 },
+    { label: 'Fast', value: 1.15 }
+  ];
+
+  const isEditableTarget = (event) => {
+    const target = event.target;
+    if (!target) {
+      return false;
+    }
+
+    const tagName = target.tagName ? target.tagName.toLowerCase() : '';
+    return tagName === 'input' || tagName === 'textarea' || target.isContentEditable;
+  };
 
   useEffect(() => {
     return () => {
@@ -56,6 +73,50 @@ function App() {
       synthAudioRef.current.play().catch(() => {});
     }
   }, [synthAudioUrl]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.code !== 'Space' || event.repeat) {
+        return;
+      }
+
+      if (isEditableTarget(event)) {
+        return;
+      }
+
+      if (uiState !== 'ready') {
+        return;
+      }
+
+      event.preventDefault();
+      startRecording();
+    };
+
+    const handleKeyUp = (event) => {
+      if (event.code !== 'Space') {
+        return;
+      }
+
+      if (isEditableTarget(event)) {
+        return;
+      }
+
+      if (uiState !== 'recording') {
+        return;
+      }
+
+      event.preventDefault();
+      stopRecording();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [uiState, startRecording, stopRecording]);
 
   const updateStageStatus = (stage, statusValue, message) => {
     setStages(prev => ({
@@ -282,7 +343,10 @@ function App() {
       const synthData = await requestJson('/process/synthesize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: simplifyData.simplifiedText })
+        body: JSON.stringify({
+          text: simplifyData.simplifiedText,
+          speed: speechSpeed
+        })
       });
 
       updateStageStatus(4, 'complete', 'Audio synthesized');
@@ -361,7 +425,10 @@ function App() {
       const synthData = await requestJson('/process/synthesize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: simplifyData.simplifiedText })
+        body: JSON.stringify({
+          text: simplifyData.simplifiedText,
+          speed: speechSpeed
+        })
       });
 
       updateStageStatus(4, 'complete', 'Audio synthesized');
@@ -463,6 +530,22 @@ function App() {
                   }}
                 />
               </div>
+              <div className="pref-group">
+                <label>Speech Speed</label>
+                <div className="segmented" role="group" aria-label="Speech speed">
+                  {speedOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`seg-button ${speechSpeed === option.value ? 'active' : ''}`}
+                      onClick={() => setSpeechSpeed(option.value)}
+                      disabled={controlsDisabled}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -477,6 +560,8 @@ function App() {
                   Stop Recording
                 </button>
               </div>
+              <p className="hint-text">Press [space] to record</p>
+              
             </div>
           </div>
         </div>
@@ -502,7 +587,7 @@ function App() {
           </div>
           <h3>Filtered Transcript</h3>
           <div className={`stage-status ${stages[3].status}`}>{stages[3].message}</div>
-          <div className={`stage-status ${stages[4].status}`}>{stages[4].message}</div>
+    
           <pre>{simplifiedText}</pre>
         </div>
       </section>
