@@ -355,6 +355,7 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: simplifyData.simplifiedText,
+          voiceId,
           speed: speechSpeed
         })
       });
@@ -437,10 +438,8 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          
           text: simplifyData.simplifiedText,
-          voiceId: voiceId 
-       ,
+          voiceId,
           speed: speechSpeed
         })
       });

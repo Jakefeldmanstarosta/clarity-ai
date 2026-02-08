@@ -13,7 +13,7 @@ export class SpeechProcessingService {
     return await this.textSimplificationService.simplify(text, preferences);
   }
 
-  async synthesize(text, voiceId, options = {}) {
+  async synthesize(text, options = {}, voiceId) {
     return await this.speechSynthesisService.synthesize(text, voiceId, options);
   }
 
