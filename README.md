@@ -12,7 +12,7 @@ Built for accessibility use cases like ESL learners, neurodivergent users, and a
 
 ---
 
-## Tech Stack
+## Stack
 
 **Frontend**
 - Next.js (React)
